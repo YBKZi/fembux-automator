@@ -6,6 +6,8 @@ import StartModeControl from "@/components/automation/StartModeControl";
 import FlowStepCard from "@/components/automation/FlowStepCard";
 import MonitoringPanel from "@/components/automation/MonitoringPanel";
 import PlatformPanel from "@/components/automation/PlatformPanel";
+import GrokBriefPanel from "@/components/automation/GrokBriefPanel";
+import { base44 } from "@/api/base44Client";
 
 const STAGES = [
   { id: "trend", title: "Analisi Trend", subtitle: "Grok studia i trend e sceglie il personaggio", icon: TrendingUp, agent: "Grok", detail: [] },
@@ -25,6 +27,8 @@ export default function AutomationFlow() {
   const [statuses, setStatuses] = useState(() => Object.fromEntries(STAGES.map((s) => [s.id, "idle"])));
   const [running, setRunning] = useState(false);
   const [activePlatforms, setActivePlatforms] = useState([]);
+  const [grokBrief, setGrokBrief] = useState(null);
+  const [loadingBrief, setLoadingBrief] = useState(false);
   const timers = useRef([]);
 
   const clearTimers = () => { timers.current.forEach((t) => clearTimeout(t)); timers.current = []; };
@@ -32,6 +36,8 @@ export default function AutomationFlow() {
     clearTimers();
     setStatuses(Object.fromEntries(STAGES.map((s) => [s.id, "idle"])));
     setActivePlatforms([]);
+    setGrokBrief(null);
+    setLoadingBrief(false);
     setRunning(false);
   }, []);
   const setStatus = (id, st) => setStatuses((prev) => ({ ...prev, [id]: st }));
@@ -42,6 +48,14 @@ export default function AutomationFlow() {
       if (i >= STAGES.length) { setRunning(false); return; }
       const stage = STAGES[i];
       setStatus(stage.id, "running");
+      if (stage.id === "trend") {
+        setLoadingBrief(true);
+        base44.functions.invoke("generateGrokBrief", { hint: "" })
+          .then((res) => setGrokBrief(res.data))
+          .catch(() => {})
+          .finally(() => { setLoadingBrief(false); timers.current.push(setTimeout(finish, 400)); });
+        return;
+      }
       const finish = () => {
         setStatus(stage.id, "done");
         if (PLATFORM_MAP[stage.id]) setActivePlatforms((prev) => [...new Set([...prev, ...PLATFORM_MAP[stage.id]])]);
@@ -113,6 +127,12 @@ export default function AutomationFlow() {
         <div className="mb-5">
           <StartModeControl mode={mode} onModeChange={setMode} running={running} onRun={handleRun} onReset={reset} currentStage={currentStage?.title} />
         </div>
+
+        {(loadingBrief || grokBrief) && (
+          <div className="mb-5">
+            <GrokBriefPanel brief={grokBrief} loading={loadingBrief} />
+          </div>
+        )}
 
         {/* Flow */}
         <section className="mb-5 rounded-2xl border border-white/10 bg-white/[0.02] p-3.5 sm:p-4 backdrop-blur-2xl">
