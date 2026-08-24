@@ -12,6 +12,7 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import AutomationFlow from '@/pages/AutomationFlow';
+import Settings from '@/pages/Settings';
 import { Navigate } from 'react-router-dom';
 // Add page imports here
 
