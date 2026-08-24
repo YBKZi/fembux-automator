@@ -1,0 +1,80 @@
+const XAI_URL = 'https://api.x.ai/v1/chat/completions';
+const MODEL = 'grok-4.6';
+
+async function callGrok(apiKey, messages, temperature) {
+  if (!apiKey) throw new Error('XAI_API_KEY non configurata');
+  const resp = await fetch(XAI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: MODEL, temperature, response_format: { type: 'json_object' }, messages })
+  });
+  if (!resp.ok) {
+    const txt = await resp.text();
+    throw new Error(`Grok API ${resp.status}: ${txt.slice(0, 300)}`);
+  }
+  const data = await resp.json();
+  const content = data?.choices?.[0]?.message?.content || '{}';
+  try { return JSON.parse(content); } catch { return {}; }
+}
+
+export async function generateBrief(apiKey, hint = '') {
+  const systemPrompt =
+    'Sei un creative director esperto di contenuti NSFW per adulti. ' +
+    'Analizzi i trend del momento e produci brief creativi pronti per la generazione di immagini su Stable Diffusion. ' +
+    'Rispondi SEMPRE in JSON valido.';
+  const userPrompt =
+    'Genera un brief per la prossima sessione di generazione immagini. ' +
+    'Scegli un personaggio coerente con i trend attuali, una mood/vibe, 3 prompt creativi dettagliati e descrittivi ' +
+    '(in inglese, ottimizzati per Stable Diffusion, stile fotorealistico) e 12 hashtag di tendenza (senza #). ' +
+    (hint ? `Considera questo suggerimento: "${hint}". ` : '') +
+    'Schema JSON richiesto: {"character": string, "vibe": string, "prompts": string[3], "hashtags": string[12]}.';
+  const parsed = await callGrok(
+    [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+    0.9
+  );
+  return {
+    character: typeof parsed.character === 'string' ? parsed.character : '',
+    vibe: typeof parsed.vibe === 'string' ? parsed.vibe : '',
+    prompts: Array.isArray(parsed.prompts) ? parsed.prompts.filter((p) => typeof p === 'string').slice(0, 3) : [],
+    hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags.filter((h) => typeof h === 'string').slice(0, 12) : []
+  };
+}
+
+export async function generateOptimalTimes(apiKey) {
+  const parsed = await callGrok(
+    [
+      { role: 'system', content: 'Sei un analista di social media NSFW. Rispondi in JSON valido.' },
+      {
+        role: 'user',
+        content:
+          'Indica i 2 orari ottimali di pubblicazione per contenuti NSFW oggi (timezone Europe/Rome), ' +
+          'basandoti sui pattern di engagement serali/notturni (tra le 19:00 e le 23:30). ' +
+          'Schema: {"times":["HH:mm","HH:mm"]}. Esattamente 2 orari.'
+      }
+    ],
+    0.4
+  );
+  const times = Array.isArray(parsed.times)
+    ? parsed.times.filter((t) => typeof t === 'string' && /^\d{2}:\d{2}$/.test(t)).slice(0, 2)
+    : [];
+  return times.length ? times : ['21:00', '22:30'];
+}
+
+export function romeTodayAtUtc(hhmm) {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Rome', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(now);
+  const get = (t) => (parts.find((p) => p.type === t) || {}).value;
+  const dateStr = `${get('year')}-${get('month')}-${get('day')}`;
+  const guess = Date.parse(`${dateStr}T${hhmm}:00Z`);
+  if (!isFinite(guess)) return new Date(Date.now() + 3600000);
+  const offParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Rome', timeZoneName: 'shortOffset'
+  }).formatToParts(new Date(guess));
+  const offStr = (offParts.find((p) => p.type === 'timeZoneName') || {}).value || 'GMT+0';
+  const m = offStr.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+  let offMin = m ? parseInt(m[2], 10) * 60 + (m[3] ? parseInt(m[3], 10) : 0) : 0;
+  if (m && m[1] === '-') offMin = -offMin;
+  return new Date(guess - offMin * 60000);
+}

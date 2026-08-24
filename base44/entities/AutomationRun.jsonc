@@ -1,0 +1,64 @@
+{
+  "name": "AutomationRun",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "semi",
+        "auto"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "semi",
+        "auto"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "done",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "scheduled_for": {
+      "type": "string"
+    },
+    "triggered_at": {
+      "type": "string",
+      "default": ""
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "brief": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "mode",
+    "status",
+    "owner_id"
+  ],
+  "rls": {
+    "read": {
+      "data.owner_id": "{{user.id}}"
+    },
+    "create": {
+      "data.owner_id": "{{user.id}}"
+    },
+    "update": {
+      "data.owner_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.owner_id": "{{user.id}}"
+    }
+  }
+}

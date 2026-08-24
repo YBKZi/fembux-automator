@@ -1,0 +1,43 @@
+{
+  "name": "AutomationConfig",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "semi",
+        "auto"
+      ],
+      "default": "manual"
+    },
+    "semi_times": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "mode"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

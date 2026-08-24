@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Check, Loader2 } from "lucide-react";
 
-export default function FlowStepCard({ stage, index, status, isLast, onAdvance, mode }) {
+export default function FlowStepCard({ stage, index, status, isLast }) {
   const Icon = stage.icon;
   const isRunning = status === "running";
   const isDone = status === "done";
@@ -36,11 +36,6 @@ export default function FlowStepCard({ stage, index, status, isLast, onAdvance, 
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span className="rounded-full border border-white/10 px-2 py-0.5 text-[9px] text-white/40">{stage.agent}</span>
-            {mode === "manual" && status === "running" && (
-              <button onClick={onAdvance} className="rounded-lg border border-fuchsia-400/40 bg-fuchsia-500/15 px-2 py-0.5 text-[10px] font-medium text-fuchsia-200 hover:bg-fuchsia-500/25">
-                Conferma →
-              </button>
-            )}
           </div>
         </div>
         <p className="mt-0.5 text-[11px] text-white/45 leading-snug line-clamp-2">{stage.subtitle}</p>
