@@ -1,20 +1,39 @@
-const XAI_URL = 'https://api.x.ai/v1/chat/completions';
+const XAI_URL = 'https://api.x.ai/v1/responses';
 const MODEL = 'grok-4.6';
+
+function extractJson(text) {
+  if (!text) return {};
+  try { return JSON.parse(text); } catch {}
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end > start) {
+    try { return JSON.parse(text.slice(start, end + 1)); } catch {}
+  }
+  return {};
+}
 
 async function callGrok(apiKey, messages, temperature) {
   if (!apiKey) throw new Error('XAI_API_KEY non configurata');
   const resp = await fetch(XAI_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: MODEL, temperature, response_format: { type: 'json_object' }, messages })
+    body: JSON.stringify({ model: MODEL, input: messages.map((m) => m.content).join('\n\n') })
   });
   if (!resp.ok) {
     const txt = await resp.text();
     throw new Error(`Grok API ${resp.status}: ${txt.slice(0, 300)}`);
   }
   const data = await resp.json();
-  const content = data?.choices?.[0]?.message?.content || '{}';
-  try { return JSON.parse(content); } catch { return {}; }
+  let content = '';
+  const out = Array.isArray(data?.output) ? data.output : [];
+  for (const item of out) {
+    if (Array.isArray(item?.content)) {
+      for (const c of item.content) {
+        if (typeof c?.text === 'string') content += c.text;
+      }
+    }
+  }
+  return extractJson(content);
 }
 
 export async function generateBrief(apiKey, hint = '') {
@@ -29,6 +48,7 @@ export async function generateBrief(apiKey, hint = '') {
     (hint ? `Considera questo suggerimento: "${hint}". ` : '') +
     'Schema JSON richiesto: {"character": string, "vibe": string, "prompts": string[3], "hashtags": string[12]}.';
   const parsed = await callGrok(
+    apiKey,
     [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
     0.9
   );
@@ -42,6 +62,7 @@ export async function generateBrief(apiKey, hint = '') {
 
 export async function generateOptimalTimes(apiKey) {
   const parsed = await callGrok(
+    apiKey,
     [
       { role: 'system', content: 'Sei un analista di social media NSFW. Rispondi in JSON valido.' },
       {
