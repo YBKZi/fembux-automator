@@ -38,13 +38,14 @@ async function callGrok(apiKey, messages, temperature) {
 
 export async function generateBrief(apiKey, hint = '') {
   const systemPrompt =
-    'Sei un creative director esperto di contenuti NSFW per adulti. ' +
+    'Sei un creative director esperto di contenuti NSFW per adulti con soggetti MASCULINI nelle nicchie twink, femboy, yiff e anthro (uomini adulti snelli/eleganti, femboy, personaggi furry/anthro antropomorfi). ' +
+    'Mai contenuti bara o muscolosi. I protagonisti sono SEMPRE di queste nicchie (twink, femboy, yiff, anthro). ' +
     'Analizzi i trend del momento e produci brief creativi pronti per la generazione di immagini su Stable Diffusion. ' +
     'Rispondi SEMPRE in JSON valido.';
   const userPrompt =
-    'Genera un brief per la prossima sessione di generazione immagini. ' +
-    'Scegli un personaggio coerente con i trend attuali, una mood/vibe, 3 prompt creativi dettagliati e descrittivi ' +
-    '(in inglese, ottimizzati per Stable Diffusion, stile fotorealistico) e 12 hashtag di tendenza (senza #). ' +
+    'Genera un brief per la prossima sessione di generazione immagini scegliendo un soggetto tra le nicchie twink, femboy, yiff o anthro ' +
+    '(NON bara, NON muscoloso, NON donna). Definisci personaggio coerente con i trend, mood/vibe, 3 prompt creativi dettagliati e descrittivi ' +
+    '(in inglese, ottimizzati per Stable Diffusion, stile fotorealistico o semi-realistico a seconda della nicchia) e 12 hashtag di tendenza (senza #). ' +
     (hint ? `Considera questo suggerimento: "${hint}". ` : '') +
     'Schema JSON richiesto: {"character": string, "vibe": string, "prompts": string[3], "hashtags": string[12]}.';
   const parsed = await callGrok(

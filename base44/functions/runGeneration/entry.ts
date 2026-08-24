@@ -18,6 +18,18 @@ export default async function (req) {
     if (!prompts.length) return Response.json({ error: 'Nessun prompt' }, { status: 400 });
 
     const baseUrl = String(cfg.a1111_base_url).replace(/\/+$/, '');
+    // Wait for A1111 to be reachable (pod may still be booting after resume).
+    let a1111Ready = false;
+    for (let i = 0; i < 24; i++) {
+      try {
+        const p = await fetch(`${baseUrl}/sdapi/v1/options`, { method: 'GET' });
+        if (p.ok) { a1111Ready = true; break; }
+      } catch {}
+      await new Promise((res) => setTimeout(res, 5000));
+    }
+    if (!a1111Ready)
+      return Response.json({ error: 'A1111 non raggiungibile dopo avvio pod. Riprova tra poco.' }, { status: 502 });
+
     const steps = cfg.a1111_steps || 30;
     const cfgScale = cfg.a1111_cfg || 7;
     const batchSize = Math.max(1, Math.min(cfg.a1111_batch_size || 1, 2));
