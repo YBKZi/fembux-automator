@@ -1,0 +1,101 @@
+{
+  "name": "IntegrationSetting",
+  "type": "object",
+  "properties": {
+    "runpod_api_key": {
+      "type": "string",
+      "default": ""
+    },
+    "runpod_pod_id": {
+      "type": "string",
+      "default": ""
+    },
+    "a1111_base_url": {
+      "type": "string",
+      "default": ""
+    },
+    "a1111_checkpoint": {
+      "type": "string",
+      "default": "stellarBaraXL_v10"
+    },
+    "a1111_negative_prompt": {
+      "type": "string",
+      "default": ""
+    },
+    "a1111_steps": {
+      "type": "number",
+      "default": 30
+    },
+    "a1111_cfg": {
+      "type": "number",
+      "default": 7
+    },
+    "a1111_batch_size": {
+      "type": "number",
+      "default": 1
+    },
+    "x_consumer_key": {
+      "type": "string",
+      "default": ""
+    },
+    "x_consumer_secret": {
+      "type": "string",
+      "default": ""
+    },
+    "x_access_token": {
+      "type": "string",
+      "default": ""
+    },
+    "x_access_token_secret": {
+      "type": "string",
+      "default": ""
+    },
+    "reddit_client_id": {
+      "type": "string",
+      "default": ""
+    },
+    "reddit_client_secret": {
+      "type": "string",
+      "default": ""
+    },
+    "reddit_username": {
+      "type": "string",
+      "default": ""
+    },
+    "reddit_password": {
+      "type": "string",
+      "default": ""
+    },
+    "reddit_subreddit": {
+      "type": "string",
+      "default": ""
+    },
+    "redgifs_token": {
+      "type": "string",
+      "default": ""
+    },
+    "patreon_access_token": {
+      "type": "string",
+      "default": ""
+    },
+    "patreon_campaign_id": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "required": [],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
