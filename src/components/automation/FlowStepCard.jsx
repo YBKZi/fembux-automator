@@ -43,7 +43,7 @@ export default function FlowStepCard({ stage, index, status, isLast, onAdvance, 
             )}
           </div>
         </div>
-        <p className="mt-0.5 text-[11px] text-white/45 leading-snug truncate">{stage.subtitle}</p>
+        <p className="mt-0.5 text-[11px] text-white/45 leading-snug line-clamp-2">{stage.subtitle}</p>
       </div>
     </div>
   );
